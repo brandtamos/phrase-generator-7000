@@ -1,0 +1,4 @@
+node_modules
+persist
+.env
+.DS_Store

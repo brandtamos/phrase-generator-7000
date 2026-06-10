@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Moderation - Phrase Generator</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="admin-top-nav">
+            <div class="nav-group">
+                <button type="button" class="btn-secondary" onclick="openSettings()">Settings</button>
+                <a href="/permanentdb" class="btn-secondary-link">View Permanent DB</a>
+            </div>
+            <a href="/admin/logout" class="logout-link">Logout</a>
+        </div>
+
+        <div class="admin-header">
+            <h1>Words to Approve:</h1>
+        </div>
+        
+        <div class="list-container">
+            <section>
+                <h2>List 1</h2>
+                <ul class="word-list" id="list1">
+                    <!-- Words will be loaded here -->
+                </ul>
+            </section>
+
+            <section>
+                <h2>List 2</h2>
+                <ul class="word-list" id="list2">
+                    <!-- Words will be loaded here -->
+                </ul>
+            </section>
+        </div>
+
+        <div class="summary-container">
+            <div class="summary-item">
+                <span id="count-list1" class="count-badge">0</span>
+            </div>
+            <div class="summary-item">
+                <span id="count-list2" class="count-badge">0</span>
+            </div>
+        </div>
+
+        <div class="admin-entry-container">
+            <div class="entry-group-wrapper">
+                <div class="entry-group">
+                    <input type="text" id="admin-input-list1" placeholder="Add to List 1..." onkeypress="handleKeyPress(event, 'list1')">
+                    <button type="button" onclick="addAdminWord('list1')">+</button>
+                </div>
+                <button type="button" class="btn-random" onclick="pullRandomWord('list1')">Random from Perm</button>
+            </div>
+            <div class="entry-group-wrapper">
+                <div class="entry-group">
+                    <input type="text" id="admin-input-list2" placeholder="Enter word to add to list 2" onkeypress="handleKeyPress(event, 'list2')">
+                    <button type="button" onclick="addAdminWord('list2')">+</button>
+                </div>
+                <button type="button" class="btn-random" onclick="pullRandomWord('list2')">Random from Perm</button>
+            </div>
+        </div>
+
+        <div class="admin-actions">
+            <button type="button" class="btn-primary" onclick="publishWords()">Submit</button>
+            <div id="publish-status"></div>
+        </div>
+    </div>
+
+    <div id="settings-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeSettings()">&times;</span>
+            <h2>Settings</h2>
+            <div class="form-group">
+                <label for="setting-show-password">Live Show Password</label>
+                <input type="text" id="setting-show-password" placeholder="Enter password for submissions">
+                <p class="help-text">Users must enter this password on the main page to submit words.</p>
+            </div>
+            <button type="button" class="btn-primary" onclick="saveSettings()">Save Settings</button>
+            <div id="settings-status"></div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/js/admin.js"></script>
+</body>
+</html>

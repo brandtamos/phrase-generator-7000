@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phrase Generator 7000</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Phrase Generator 7000</h1>
+        
+        <div id="message-container"></div>
+
+        <form action="/submit" method="POST">
+            <div class="form-group">
+                <label for="word1">Word 1</label>
+                <input type="text" id="word1" name="word1" placeholder="Enter a word..." required>
+            </div>
+            <div class="form-group">
+                <label for="word2">Word 2</label>
+                <input type="text" id="word2" name="word2" placeholder="Enter another word..." required>
+            </div>
+            <div class="form-group">
+                <label for="showPassword">Live Show Password</label>
+                <input type="text" id="showPassword" name="showPassword" placeholder="Enter the show password" required>
+            </div>
+            <button type="submit">Submit Words</button>
+        </form>
+    </div>
+
+    <script>
+        // Check for message in URL (e.g., from a traditional redirect)
+        const urlParams = new URLSearchParams(window.location.search);
+        const msg = urlParams.get('msg');
+        if (msg) {
+            showMessage(msg);
+            // Clear the message from URL without reloading
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+
+        function showMessage(text) {
+            const container = document.getElementById('message-container');
+            container.innerHTML = '';
+            const alert = document.createElement('div');
+            alert.className = 'alert alert-success';
+            alert.textContent = text;
+            container.appendChild(alert);
+        }
+    </script>
+</body>
+</html>
