@@ -46,6 +46,15 @@
             alert.className = 'alert alert-success';
             alert.textContent = text;
             container.appendChild(alert);
+
+            // Fade out after 2 seconds
+            setTimeout(() => {
+                alert.classList.add('alert-fade');
+                // Remove from DOM after transition completes
+                setTimeout(() => {
+                    alert.remove();
+                }, 500);
+            }, 2000);
         }
     </script>
 </body>

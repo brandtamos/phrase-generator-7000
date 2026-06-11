@@ -17,8 +17,38 @@ async function loadWords() {
         const data = await response.json();
         renderList('list1', data.list1);
         renderList('list2', data.list2);
+        
+        // Also load settings to set button state
+        loadSettings();
     } catch (err) {
         console.error('Failed to load words:', err);
+    }
+}
+
+async function loadSettings() {
+    try {
+        const response = await fetch('/api/settings', {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        });
+        if (response.ok) {
+            const settings = await response.json();
+            updateSubmitButton(settings.listSubmitted);
+        }
+    } catch (err) {
+        console.error('Failed to load settings:', err);
+    }
+}
+
+function updateSubmitButton(isSubmitted) {
+    const btn = document.querySelector('.btn-primary[onclick="publishWords()"]');
+    if (!btn) return;
+
+    if (isSubmitted) {
+        btn.disabled = true;
+        btn.innerHTML = '🔒 Submit';
+    } else {
+        btn.disabled = false;
+        btn.innerHTML = 'Submit';
     }
 }
 
@@ -91,6 +121,24 @@ socket.on('wordUpdated', (data) => {
 // Handle word deletion (from Socket.IO)
 socket.on('wordDeleted', (data) => {
     removeElementFromList(data.list, data.index);
+});
+
+// Handle clearing all lists
+socket.on('listsCleared', () => {
+    document.getElementById('list1').innerHTML = '';
+    document.getElementById('list2').innerHTML = '';
+    updateCounts();
+});
+
+// Handle real-time settings updates
+socket.on('settingsUpdated', (settings) => {
+    updateSubmitButton(settings.listSubmitted);
+    // Update checkbox in modal if it's open
+    const checkbox = document.getElementById('setting-list-submitted');
+    if (checkbox) {
+        checkbox.checked = !!settings.listSubmitted;
+        checkbox.disabled = !settings.listSubmitted;
+    }
 });
 
 async function toggleSelect(element, list, index) {
@@ -249,6 +297,33 @@ async function pullRandomWord(listId) {
     }
 }
 
+async function clearSubmissions() {
+    if (!confirm('Are you sure you want to clear ALL current submissions? This will not affect the live or permanent databases.')) {
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/admin/clear-submissions', {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        });
+
+        if (response.ok) {
+            // Local update is handled by socket 'listsCleared' event
+            const statusEl = document.getElementById('settings-status');
+            statusEl.textContent = 'Current lists cleared!';
+            statusEl.style.color = '#2ecc71';
+            setTimeout(() => { statusEl.textContent = ''; }, 3000);
+        } else {
+            alert('Failed to clear submissions.');
+        }
+    } catch (err) {
+        console.error('Clear error:', err);
+    }
+}
+
 async function publishWords() {
     const statusEl = document.getElementById('publish-status');
     statusEl.textContent = 'Publishing...';
@@ -290,6 +365,11 @@ async function openSettings() {
         if (response.ok) {
             const settings = await response.json();
             document.getElementById('setting-show-password').value = settings.showPassword || '';
+            
+            const checkbox = document.getElementById('setting-list-submitted');
+            checkbox.checked = !!settings.listSubmitted;
+            // Admin can only uncheck, not check. So if it's already unchecked, disable it.
+            checkbox.disabled = !settings.listSubmitted;
         }
     } catch (err) {
         console.error('Failed to fetch settings:', err);
@@ -303,6 +383,7 @@ function closeSettings() {
 
 async function saveSettings() {
     const showPassword = document.getElementById('setting-show-password').value;
+    const listSubmitted = document.getElementById('setting-list-submitted').checked;
     const statusEl = document.getElementById('settings-status');
     statusEl.textContent = 'Saving...';
     statusEl.style.color = '#333';
@@ -314,7 +395,7 @@ async function saveSettings() {
                 'Content-Type': 'application/json',
                 'X-Requested-With': 'XMLHttpRequest'
             },
-            body: JSON.stringify({ showPassword })
+            body: JSON.stringify({ showPassword, listSubmitted })
         });
 
         if (response.ok) {

@@ -63,8 +63,8 @@
         </div>
 
         <div class="admin-actions">
-            <button type="button" class="btn-primary" onclick="publishWords()">Submit</button>
             <div id="publish-status"></div>
+            <button type="button" class="btn-primary" onclick="publishWords()">Submit</button>
         </div>
     </div>
 
@@ -76,6 +76,13 @@
                 <label for="setting-show-password">Live Show Password</label>
                 <input type="text" id="setting-show-password" placeholder="Enter password for submissions">
                 <p class="help-text">Users must enter this password on the main page to submit words.</p>
+            </div>
+            <div class="form-group" style="display: flex; flex-direction: row; align-items: center; gap: 10px;">
+                <input type="checkbox" id="setting-list-submitted" style="width: auto; margin-bottom: 0;">
+                <label for="setting-list-submitted" style="margin-bottom: 0; display: inline-block;">List Submitted</label>
+            </div>
+            <div class="form-group">
+                <button type="button" class="btn-danger" onclick="clearSubmissions()">Clear current submissions</button>
             </div>
             <button type="button" class="btn-primary" onclick="saveSettings()">Save Settings</button>
             <div id="settings-status"></div>

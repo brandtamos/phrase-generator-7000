@@ -15,6 +15,17 @@ const PORT = process.env.PORT || 3000;
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'password123';
 const SESSION_SECRET = process.env.SESSION_SECRET || 'phrase-generator-secret';
 
+// Utility to escape HTML and prevent script injection
+function escapeHtml(text) {
+    if (typeof text !== 'string') return text;
+    return text
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
 // Initialize storage
 async function initStorage() {
     await storage.init({
@@ -27,7 +38,7 @@ async function initStorage() {
     // Initialize lists if they don't exist
     if (!(await storage.getItem('list1'))) await storage.setItem('list1', []);
     if (!(await storage.getItem('list2'))) await storage.setItem('list2', []);
-    if (!(await storage.getItem('settings'))) await storage.setItem('settings', { showPassword: '' });
+    if (!(await storage.getItem('settings'))) await storage.setItem('settings', { showPassword: '', listSubmitted: false });
     if (!(await storage.getItem('permanent_list1'))) await storage.setItem('permanent_list1', []);
     if (!(await storage.getItem('permanent_list2'))) await storage.setItem('permanent_list2', []);
 }
@@ -75,7 +86,7 @@ app.post('/submit', async (req, res) => {
 
     if (word1) {
         const list1 = await storage.getItem('list1');
-        const trimmed = word1.trim();
+        const trimmed = escapeHtml(word1.trim());
         const newWord = { text: trimmed, selected: false };
         list1.push(newWord);
         await storage.setItem('list1', list1);
@@ -84,7 +95,7 @@ app.post('/submit', async (req, res) => {
     
     if (word2) {
         const list2 = await storage.getItem('list2');
-        const trimmed = word2.trim();
+        const trimmed = escapeHtml(word2.trim());
         const newWord = { text: trimmed, selected: false };
         list2.push(newWord);
         await storage.setItem('list2', list2);
@@ -159,9 +170,21 @@ app.get('/api/settings', isAuthenticated, async (req, res) => {
 });
 
 app.post('/api/settings', isAuthenticated, async (req, res) => {
-    const { showPassword } = req.body;
-    const settings = { showPassword: showPassword || '' };
+    const { showPassword, listSubmitted } = req.body;
+    const currentSettings = await storage.getItem('settings') || { showPassword: '', listSubmitted: false };
+    
+    // Admin can only uncheck (set to false), never check (set to true) manually.
+    let newListSubmitted = currentSettings.listSubmitted;
+    if (listSubmitted === false) {
+        newListSubmitted = false;
+    }
+
+    const settings = { 
+        showPassword: showPassword !== undefined ? showPassword : currentSettings.showPassword,
+        listSubmitted: newListSubmitted
+    };
     await storage.setItem('settings', settings);
+    io.emit('settingsUpdated', settings);
     res.json({ success: true });
 });
 
@@ -192,7 +215,7 @@ app.post('/api/admin/add-word', isAuthenticated, async (req, res) => {
 
     const currentList = await storage.getItem(list);
     if (currentList) {
-        const trimmed = word.trim();
+        const trimmed = escapeHtml(word.trim());
         const newWord = { text: trimmed, selected: false };
         currentList.push(newWord);
         await storage.setItem(list, currentList);
@@ -200,6 +223,18 @@ app.post('/api/admin/add-word', isAuthenticated, async (req, res) => {
         return res.json({ success: true, word: newWord });
     }
     res.status(400).json({ error: 'Invalid list' });
+});
+
+app.post('/api/admin/clear-submissions', isAuthenticated, async (req, res) => {
+    try {
+        await storage.setItem('list1', []);
+        await storage.setItem('list2', []);
+        io.emit('listsCleared');
+        res.json({ success: true });
+    } catch (err) {
+        console.error('Clear submissions failed:', err);
+        res.status(500).json({ error: 'Failed to clear submissions' });
+    }
 });
 
 app.post('/api/admin/publish', isAuthenticated, async (req, res) => {
@@ -223,6 +258,12 @@ app.post('/api/admin/publish', isAuthenticated, async (req, res) => {
         
         await storage.setItem('permanent_list1', perm1);
         await storage.setItem('permanent_list2', perm2);
+
+        // Mark list as submitted
+        const settings = await storage.getItem('settings') || { showPassword: '', listSubmitted: false };
+        settings.listSubmitted = true;
+        await storage.setItem('settings', settings);
+        io.emit('settingsUpdated', settings);
         
         res.json({ success: true });
     } catch (err) {

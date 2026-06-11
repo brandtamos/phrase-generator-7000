@@ -66,6 +66,11 @@ button:hover {
     border: 1px solid transparent;
     border-radius: 4px;
     text-align: center;
+    transition: opacity 0.5s ease-out;
+}
+
+.alert-fade {
+    opacity: 0;
 }
 
 .alert-success {
@@ -284,8 +289,19 @@ button:hover {
     background-color: #27ae60;
 }
 
+.btn-primary:disabled {
+    background-color: #bdc3c7;
+    cursor: not-allowed;
+    border-color: #95a5a6;
+}
+
+.btn-primary:disabled:hover {
+    background-color: #bdc3c7;
+}
+
 #publish-status {
-    margin-top: 10px;
+    height: 24px;
+    margin-bottom: 10px;
     font-weight: bold;
 }
 
@@ -297,6 +313,15 @@ button:hover {
 
 .btn-secondary:hover {
     background-color: #7f8c8d;
+}
+
+.btn-danger {
+    background-color: #e74c3c;
+    width: 100%;
+}
+
+.btn-danger:hover {
+    background-color: #c0392b;
 }
 
 /* Modal Styles */
