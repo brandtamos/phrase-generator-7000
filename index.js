@@ -26,6 +26,16 @@ function escapeHtml(text) {
         .replace(/'/g, "&#039;");
 }
 
+function unescapeHtml(text) {
+    if (typeof text !== 'string') return text;
+    return text
+        .replace(/&amp;/g, "&")
+        .replace(/&lt;/g, "<")
+        .replace(/&gt;/g, ">")
+        .replace(/&quot;/g, "\"")
+        .replace(/&#039;/g, "'");
+}
+
 // Initialize storage
 async function initStorage() {
     await storage.init({
@@ -275,7 +285,7 @@ app.post('/api/admin/publish', isAuthenticated, async (req, res) => {
 app.get('/pg7k.js', async (req, res) => {
     const content = await storage.getItem('livedb') || '';
     res.setHeader('Content-Type', 'text/plain');
-    res.send(content);
+    res.send(unescapeHtml(content));
 });
 
 app.post('/admin/delete', isAuthenticated, async (req, res) => {
