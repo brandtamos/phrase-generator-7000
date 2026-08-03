@@ -247,6 +247,34 @@ app.post('/api/admin/clear-submissions', isAuthenticated, async (req, res) => {
     }
 });
 
+app.post('/api/admin/move-to-perm', isAuthenticated, async (req, res) => {
+    try {
+        const list1 = await storage.getItem('list1') || [];
+        const list2 = await storage.getItem('list2') || [];
+
+        const allL1 = list1.map(item => typeof item === 'string' ? item : item.text);
+        const allL2 = list2.map(item => typeof item === 'string' ? item : item.text);
+
+        let perm1 = await storage.getItem('permanent_list1') || [];
+        let perm2 = await storage.getItem('permanent_list2') || [];
+
+        perm1 = [...new Set([...perm1, ...allL1])];
+        perm2 = [...new Set([...perm2, ...allL2])];
+
+        await storage.setItem('permanent_list1', perm1);
+        await storage.setItem('permanent_list2', perm2);
+
+        await storage.setItem('list1', []);
+        await storage.setItem('list2', []);
+        io.emit('listsCleared');
+
+        res.json({ success: true });
+    } catch (err) {
+        console.error('Move to permanent DB failed:', err);
+        res.status(500).json({ error: 'Failed to move words to permanent DB' });
+    }
+});
+
 app.post('/api/admin/publish', isAuthenticated, async (req, res) => {
     try {
         const list1 = await storage.getItem('list1') || [];

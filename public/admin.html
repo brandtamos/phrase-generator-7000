@@ -55,7 +55,7 @@
             </div>
             <div class="entry-group-wrapper">
                 <div class="entry-group">
-                    <input type="text" id="admin-input-list2" placeholder="Enter word to add to list 2" onkeypress="handleKeyPress(event, 'list2')">
+                    <input type="text" id="admin-input-list2" placeholder="Add to List 2..." onkeypress="handleKeyPress(event, 'list2')">
                     <button type="button" onclick="addAdminWord('list2')">+</button>
                 </div>
                 <button type="button" class="btn-random" onclick="pullRandomWord('list2')">Random from Perm</button>
@@ -64,7 +64,8 @@
 
         <div class="admin-actions">
             <div id="publish-status"></div>
-            <button type="button" class="btn-primary" onclick="publishWords()">Submit</button>
+            <button type="button" class="btn-primary" onclick="publishWords()">Set Live DB</button>
+            <button type="button" class="btn-danger" onclick="moveAllToPermDb()">Move All To Perm DB and Clear</button>
         </div>
     </div>
 

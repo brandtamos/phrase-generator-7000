@@ -278,6 +278,17 @@ button:hover {
     text-align: center;
 }
 
+.admin-actions .btn-primary,
+.admin-actions .btn-danger {
+    display: block;
+    width: 260px;
+    margin: 0 auto;
+}
+
+.admin-actions .btn-danger {
+    margin-top: 15px;
+}
+
 .btn-primary {
     background-color: #2ecc71;
     padding: 15px 30px;

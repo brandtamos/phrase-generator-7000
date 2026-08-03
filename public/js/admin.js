@@ -45,10 +45,10 @@ function updateSubmitButton(isSubmitted) {
 
     if (isSubmitted) {
         btn.disabled = true;
-        btn.innerHTML = '🔒 Submit';
+        btn.innerHTML = '🔒 Set Live DB';
     } else {
         btn.disabled = false;
-        btn.innerHTML = 'Submit';
+        btn.innerHTML = 'Set Live DB';
     }
 }
 
@@ -350,6 +350,41 @@ async function publishWords() {
     } catch (err) {
         console.error('Publish error:', err);
         statusEl.textContent = 'Publish failed. Check console.';
+        statusEl.style.color = '#e74c3c';
+    }
+}
+
+async function moveAllToPermDb() {
+    if (!confirm('Move all words to permanent db and clear word table?')) {
+        return;
+    }
+
+    const statusEl = document.getElementById('publish-status');
+    statusEl.textContent = 'Moving to permanent DB...';
+    statusEl.style.color = '#333';
+
+    try {
+        const response = await fetch('/api/admin/move-to-perm', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        });
+
+        if (response.ok) {
+            // Local update is handled by socket 'listsCleared' event
+            statusEl.textContent = 'Moved all words to permanent DB and cleared list!';
+            statusEl.style.color = '#2ecc71';
+            setTimeout(() => { statusEl.textContent = ''; }, 3000);
+        } else {
+            const err = await response.json();
+            statusEl.textContent = `Failed to move words: ${err.error || 'Unknown error'}`;
+            statusEl.style.color = '#e74c3c';
+        }
+    } catch (err) {
+        console.error('Move to perm DB error:', err);
+        statusEl.textContent = 'Move failed. Check console.';
         statusEl.style.color = '#e74c3c';
     }
 }
