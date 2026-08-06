@@ -87,7 +87,7 @@ app.post('/submit', async (req, res) => {
     
     // Validate show password
     const settings = await storage.getItem('settings') || { showPassword: '' };
-    if (settings.showPassword && showPassword !== settings.showPassword) {
+    if (settings.showPassword && (showPassword || '').toLowerCase() !== settings.showPassword.toLowerCase()) {
         if (req.headers['accept'] === 'application/json') {
             return res.status(401).json({ error: 'Invalid show password' });
         }
